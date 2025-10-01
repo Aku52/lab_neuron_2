@@ -1,3 +1,13 @@
+# Задание 16. Уставший и отдохнувший
+# Требование к "Таблице": часы отдыха и часы учёбы
+# Требование к "Меткам": уставший/неуставший
+# Основные задачи:
+# 1) Scatter plot
+# 2) Обучить KNN
+# 3) Нарисовать decision boundary
+# 4) Проверить accuracy
+# 5) Сравнение с деревом ркшений
+
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder
@@ -15,9 +25,12 @@ data = pd.DataFrame({
     "labels" :['неуставший','неуставший','неуставший','уставший','уставший','неуставший','неуставший','уставший','неуставший','неуставший']
 })
 
+
 encoder = OneHotEncoder()
-x_encoded = encoder.fit_transform(data[["students"]])
-X = np.hstack([x_encoded.toarray(), data[["study_hours", "rest_hours"]].values])
+x_encoded = encoder.fit_transform(data[["students"]]) 
+
+# toarray() превращение в обычный массив NumPy
+X = np.hstack([x_encoded.toarray(), data[["study_hours", "rest_hours"]].values]) 
 y = data["labels"]
 
 # Разделение на обучающую и тестовую части
@@ -29,7 +42,16 @@ knn.fit(X_train, y_train)
 
 # 4) Проверка accuracy
 y_pred = knn.predict(X_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
+print("KNN Accuracy:", accuracy_score(y_test, y_pred))
+
+# 5) Сравнить с деревом решений(по времени выполнения)
+# Обучение дерева решений
+tree = DecisionTreeClassifier()
+tree.fit(X_train, y_train)
+
+# Проверка accuracy дерева решений
+y_pred_tree = tree.predict(X_test)
+print("Decision Tree Accuracy:", accuracy_score(y_test, y_pred_tree))
 
 # Создание примера
 new = encoder.transform([["student"]]).toarray()
@@ -39,29 +61,46 @@ print(knn.predict(new_data))
 # 3) Отрисовка decision boundary
 # Только числовые признаки: study_hours и rest_hours
 X_vis = data[["study_hours", "rest_hours"]].values
-y_vis = data["labels"].map({'уставший': 1, 'неуставший': 0}).values
+y_vis = data["labels"].map({'уставший': 1, 'неуставший': 0}).values 
+# map() преобразуются в числовые значения
+# #values превращает результат в массив NumPy
 
-knn_vis = KNeighborsClassifier(n_neighbors=3)
+knn_vis = KNeighborsClassifier(n_neighbors=3) #3 ближайших соседа при классификации
 knn_vis.fit(X_vis, y_vis)
 
-# Сетка координат
-x_min, x_max = X_vis[:, 0].min() - 1, X_vis[:, 0].max() + 1
-y_min, y_max = X_vis[:, 1].min() - 1, X_vis[:, 1].max() + 1
+# Определение границ по осям X и Y (1-отступ)
+x_min, x_max = X_vis[:, 0].min() - 1, X_vis[:, 0].max() + 1 # study_hours
+y_min, y_max = X_vis[:, 1].min() - 1, X_vis[:, 1].max() + 1 # rest_hours
+# Создаётся сетка 200 на 200
 xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200),
                      np.linspace(y_min, y_max, 200))
 
-Z = knn_vis.predict(np.c_[xx.ravel(), yy.ravel()])
+
+# xx.ravel() и yy.ravel() превращают сетку в список координат
+# np.c_[] объединяет точки на плоскости в пары 
+Z = knn_vis.predict(np.c_[xx.ravel(), yy.ravel()]) 
+# Преобразованиие обратно в форму сетки
 Z = Z.reshape(xx.shape)
 
-# Построение графика
-plt.figure(figsize=(8,6))
-plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
-plt.scatter(X_vis[:, 0], X_vis[:, 1], c=y_vis, edgecolors='k', cmap='coolwarm')
+
+#1,3) Построение графика (Scatter plot and decision boundary)
+
+# X_vis[:, 0] — значения по оси X (часы учёбы)
+# X_vis[:, 1] — значения по оси Y (часы отдыха)
+# edgecolors='k' — чёрная окантовка точек
+# alpha=0.3 — прозрачность заливки (чтобы видно было)
+# coolwarm (синяя и красная заливка)
+
+colors = ['green' if label == 'неуставший' else 'red' for label in data["labels"]]
+
+plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm') # 3) функция строющая decision boundary
+plt.scatter(X_vis[:, 0], X_vis[:, 1], c=y_vis, edgecolors='k', cmap='coolwarm') # 1) функция Scatter plot
 plt.xlabel("study_hours")
 plt.ylabel("rest_hours")
 plt.title("Decision Boundary (KNN)")
 plt.grid(True)
 plt.show()
+
 
 
 
