@@ -84,7 +84,6 @@ Z = Z.reshape(xx.shape)
 
 
 #1,3) Построение графика (Scatter plot and decision boundary)
-
 # X_vis[:, 0] — значения по оси X (часы учёбы)
 # X_vis[:, 1] — значения по оси Y (часы отдыха)
 # edgecolors='k' — чёрная окантовка точек
