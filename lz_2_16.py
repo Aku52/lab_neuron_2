@@ -11,33 +11,34 @@
 
 # Импорт необходимых библиотек
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder
-import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
 #===============================================
 
 # Создание Датафрейма (ввод данных) 
 data = pd.DataFrame({
-    "students": ["student", "student", "student", "student", "student", 
-                 "student", "student", "student", "student", "student"],
+    "students": ["student"]*10,
     "study_hours" : [3,1,0,6,14,8,3,5,1,0],
     "rest_hours" : [5,4,2,5,2,8,5,0,9,2],
-    "labels" :['неуставший', 'неуставший', 'неуставший', 'уставший', 'уставший',
-               'неуставший', 'неуставший', 'уставший', 'неуставший', 'неуставший']
+    "labels" :[
+        'неуставший', 'неуставший', 'неуставший', 'уставший', 'уставший',
+        'неуставший', 'неуставший', 'уставший', 'неуставший', 'неуставший'
+    ]
 })
 
 # Преобразует данные в one-hot формат, который удобен для машинного обучения.
 # One-hot представление — это способ закодировать категориальные данные в
 # числовой формат, понятный алгоритмам машинного обучения
 encoder = OneHotEncoder()
-x_encoded = encoder.fit_transform(data[["students"]]) 
+students_encoded = encoder.fit_transform(data[["students"]]) 
 
 # Формирование признаков (X) и целевых значений (y) для обучения
-X = np.hstack([x_encoded.toarray(), data[["study_hours", "rest_hours"]].values]) 
+X = np.hstack([students_encoded.toarray(), data[["study_hours", "rest_hours"]].values]) 
 y = data["labels"]
 
 # Разделение на обучающую и тестовую части
@@ -50,8 +51,8 @@ knn = KNeighborsClassifier(n_neighbors=3)
 knn.fit(X_train, y_train)
 
 # 4) Проверка accuracy (доля правильных предсказаний среди всех предсказаний)
-y_pred = knn.predict(X_test)
-print("KNN Accuracy:", accuracy_score(y_test, y_pred))
+y_pred_knn= knn.predict(X_test)
+print("KNN Accuracy:", accuracy_score(y_test, y_pred_knn))
 
 # 5) Сравнить с деревом решений(по времени выполнения)
 # Обучение дерева решений
@@ -63,8 +64,8 @@ y_pred_tree = tree.predict(X_test)
 print("Decision Tree Accuracy:", accuracy_score(y_test, y_pred_tree))
 
 # Создание примера
-new = encoder.transform([["student"]]).toarray()
-new_data = np.hstack([new, [[0, 0]]])
+new_student = encoder.transform([["student"]]).toarray()
+new_data = np.hstack([new_student, [[0, 0]]])
 print(knn.predict(new_data))
 
 # 3) Отрисовка decision boundary
